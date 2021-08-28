@@ -19,6 +19,10 @@ app.post('/getImage', async function (req, res) {
     res.send(image);
 })
 
+app.get('/', (req, res) => {
+  res.status(200).send('Health Check');
+});
+
 app.listen(PORT, () => {
     console.log(`Example app listening at http://localhost:${port}`)
 })
