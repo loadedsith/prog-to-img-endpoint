@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "axios": "^0.21.1",
+    "body-parser": "^1.19.0",
+    "canvas": "^2.8.0",
+    "express-server": "^0.7.0"
+  }
+}
