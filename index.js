@@ -10,7 +10,7 @@ const app = express();
 app.use(express.urlencoded({extended: true}));
 app.use(express.json())
 
-const port = 3000;
+const PORT = process.env.PORT || 3000;
 
 app.post('/getImage', async function (req, res) {
     console.log(req.body.progress);
@@ -19,7 +19,7 @@ app.post('/getImage', async function (req, res) {
     res.send(image);
 })
 
-app.listen(port, () => {
+app.listen(PORT, () => {
     console.log(`Example app listening at http://localhost:${port}`)
 })
 
