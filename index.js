@@ -8,9 +8,11 @@ const express = require('express');
 
 const app = express();
 app.use(express.urlencoded({extended: true}));
-app.use(express.json())
+app.use(express.json());
 
-const PORT = process.env.PORT || 3000;
+app.listen(process.env.PORT || 3000, function(){
+  console.log("Express server listening on port %d in %s mode", this.address().port, app.settings.env);
+});
 
 app.post('/getImage', async function (req, res) {
     console.log(req.body.progress);
@@ -23,9 +25,6 @@ app.get('/', (req, res) => {
   res.status(200).send('Health Check');
 });
 
-app.listen(PORT, () => {
-    console.log(`Example app listening at http://localhost:${port}`)
-})
 
 async function buildImage(data){
   console.log(data);
