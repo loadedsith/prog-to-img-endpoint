@@ -14,7 +14,7 @@ app.listen(process.env.PORT || 3000, function(){
 });
 
 app.post('/getImage', async function (req, res) {
-    const image = await buildImage(req.body.progress);
+    const image = await buildImage(req.body);
     res.send(image);
 })
 
