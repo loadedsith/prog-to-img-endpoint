@@ -30,13 +30,19 @@ async function buildImage(data){
 
   let lootHeight = 0;
   if(data?.loot?.length > 0){
-    const numLootRows = Math.floor(data?.loot?.length/8) +1;
+    let numLootRows = Math.floor(data.loot.length/7) +1;
+    if(data.loot.length % 7 == 0){
+      numLootRows--;
+    }
     lootHeight = 45 + (35*numLootRows);
   }
   
   let xpHeight = 0;
   if(data?.xp_earned?.length>0){
-    const numSkillRows = Math.floor(data?.xp_earned?.length/6) + 1;
+    let numSkillRows = Math.floor(data.xp_earned.length/6) + 1;
+    // if(data.xp_earned.length % 5 == 1){
+    //   numSkillRows++
+    // }
     xpHeight = 40 + (numSkillRows * 50);
   }
 
@@ -165,6 +171,8 @@ function paintSkills(ctx, image, index, offset, xp){
   }
   else if (xpInt > 1000) {
     xpGained = `${Math.trunc((xpInt * 10) / 1000 / 10)}k xp`;
+  } else {
+    xpGained = `${xpInt} xp`;
   }
   ctx.strokeText(xpGained, xOffset+15, yOffset+35);
   ctx.fillText(xpGained, xOffset+15, yOffset+35);
