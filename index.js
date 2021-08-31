@@ -2,7 +2,7 @@ let { registerFont, createCanvas, loadImage } = require('canvas');
 const axios = require('axios');
 const fs = require('fs').promises;
 const express = require('express');
-const canvasWidth = 350;
+const canvasWidth = 330;
 let ctx = "";
 
 const app = express();
@@ -19,45 +19,104 @@ app.post('/getImage', async function (req, res) {
 })
 
 app.get('/', (req, res) => {
-  res.status(200).send('Health Check');
+  // res.status(200).send('Health Check');
+  res.sendFile('test/test.html' , { root : __dirname});
 });
 
 
 async function buildImage(data){
-  let numRows = Math.floor(data.loot.length/7);
-  const canvasHeight = 150 + (60*numRows);
+
+  const titleHeight = 80;
+
+  let lootHeight = 0;
+  if(data?.loot?.length > 0){
+    const numLootRows = Math.floor(data?.loot?.length/8) +1;
+    lootHeight = 45 + (35*numLootRows);
+  }
+  
+  let xpHeight = 0;
+  if(data?.xp_earned?.length>0){
+    const numSkillRows = Math.floor(data?.xp_earned?.length/6) + 1;
+    xpHeight = 40 + (numSkillRows * 50);
+  }
+
+  const canvasHeight = titleHeight + lootHeight + xpHeight;
+
   let canvas = createCanvas(canvasWidth, canvasHeight);
   ctx = canvas.getContext("2d");
   registerFont(__dirname.concat('/font/runescape.ttf'), { family: 'Runescape' });
-  
-  ctx.fillStyle = "#36393f";
+  ctx.lineWidth = 3;
+  const r_a = 0.8;
+  //ctx.fillStyle = "#36393f";
+  ctx.fillStyle = `rgba(54, 57, 63, ${r_a})`;
+  //ctx.fillStyle = "transparent";
   ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-  ctx.font = "14px Runescape";
   ctx.textAlign = "left";
   ctx.fillStyle = "#ffff00";
-  
-  const d = new Date();
-  ctx.strokeText(d.toLocaleDateString('en-US'), 30, 40);
-  ctx.fillText(d.toLocaleDateString('en-US'), 30, 40);
-  ctx.font = "24px Runescape";
 
-  ctx.strokeText(`🕒${data.runtime} minutes`, 25, 70);
-  ctx.fillText(`🕒${data.runtime} minutes`, 25, 70);
-
+  //write the script name
   ctx.font = "30px Runescape";
-  ctx.strokeText("Loot:", 30, 110);
-  ctx.fillText("Loot:", 30, 110);
+  ctx.strokeText(data?.script_name, 15, 40);
+  ctx.fillText(data?.script_name, 15, 40);
 
-  let images = await getMultiple(data);
-  let itemsReady = await loadItems(images, ctx);
-  let skillsOpened = await openSkills(data.xp_earned);
-  let skillsLoaded = await loadSkills(skillsOpened, ctx);
+
+  //write the date and runtime
+  ctx.font = "16px Runescape";
+  const runtime = minsToString(data.runtime);
+  const curDate = new Date().toLocaleDateString('en-US');
+  ctx.strokeText(`${curDate} - ${runtime}`, 15, 60);
+  ctx.fillText(`${curDate} - ${runtime}`, 15, 60);
+
+
+  //draw outline and divider
+  ctx.lineWidth = 10;
+  ctx.beginPath();
+  ctx.moveTo(0,0);
+  ctx.lineTo(canvasWidth, 0);
+  ctx.lineTo(canvasWidth, canvasHeight);
+  ctx.lineTo(0, canvasHeight);
+  ctx.lineTo(0, 0);
+  ctx.stroke();
+
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(0,titleHeight);
+  ctx.lineTo(canvasWidth, titleHeight);
+  ctx.stroke();
+  if(lootHeight && xpHeight){
+    ctx.beginPath();
+    ctx.moveTo(0,titleHeight + lootHeight);
+    ctx.lineTo(canvasWidth, titleHeight + lootHeight);
+    ctx.stroke();
+  }
+
+  ctx.lineWidth = 3;
+  //the loot
+  if(data?.loot?.length){
+    ctx.textAlign = "left";
+    ctx.font = "20px Runescape";
+    ctx.strokeText("Loot:", 15, 110);
+    ctx.fillText("Loot:", 15, 110);
+    let images = await getMultiple(data);
+    let itemsReady = await loadItems(images, ctx);
+  }
+
+  //the xp
+  if(data?.xp_earned){
+    ctx.font = "20px Runescape";
+    ctx.textAlign = "left";
+    ctx.strokeText("XP:", 15, 30+ titleHeight+lootHeight);
+    ctx.fillText("XP:", 15, 30 +titleHeight+lootHeight);
+    let skillsOpened = await openSkills(data.xp_earned);
+    let skillsLoaded = await loadSkills(skillsOpened, ctx, titleHeight + lootHeight);
+  }
+
 
   const response = {
     statusCode: 200,
-    body: JSON.stringify(canvas.toDataURL()),
+    body: JSON.stringify(canvas.toDataURL())
   };
-  
+
   return response;
 }
 
@@ -84,43 +143,50 @@ const getSkill = async(file)=>{
   return result;
 }
 
-async function loadSkills(objs, ctx) {
+async function loadSkills(objs, ctx, offset) {
   await Promise.all(objs.map((obj, index) =>
     loadImage(obj.img).then((imageObj) => {
-      paintSkills(ctx, imageObj, index, `${obj.xp} xp`);
+      paintSkills(ctx, imageObj, index, offset, `${obj.xp} xp`);
     })
   ));
 }
 
-function paintSkills(ctx, image, index, xp){
-  const xOffset = canvasWidth - 30;
-  const yOffset = 40 + (index*30);
-  ctx.drawImage(image, xOffset, yOffset-15);
+function paintSkills(ctx, image, index, offset, xp){
+  const yOffset = offset + 40 + (50 * Math.floor(index / 5));
+  const xOffset = 15 + (60 * (index % 5));
+  ctx.drawImage(image, xOffset, yOffset, 25, 25);
   ctx.font = "16px Runescape";
-  ctx.textAlign = "right";
+  ctx.textAlign = "center";
   ctx.fillStyle = "#ffff00";
-
-  ctx.strokeText(xp, xOffset-5, yOffset);
-  ctx.fillText(xp, xOffset-5, yOffset);
+  const xpInt = parseInt(xp.replace(/,/g, ''));
+  let xpGained = '';
+  if (xpInt >= 1000000) {
+    xpGained = `${Math.floor(xpInt / 1000000)}m xp`;
+  }
+  else if (xpInt > 1000) {
+    xpGained = `${Math.trunc((xpInt * 10) / 1000 / 10)}k xp`;
+  }
+  ctx.strokeText(xpGained, xOffset+15, yOffset+35);
+  ctx.fillText(xpGained, xOffset+15, yOffset+35);
 }
 
 
 function paintIcons(ctx, image, index, count){
-  const xOffset = 30 + (40 * (index % 7));
+  const xOffset = 15 + (40 * (index % 7));
   const row = Math.floor(index/7);
-  const yOffset = 120 + (row*40);
+  const yOffset = 115 + row*35;
   ctx.drawImage(image, xOffset, yOffset);
   ctx.font = "12px Runescape";
   ctx.textAlign = "right";
   if (count >= 1000000) {
-    count = `${Math.floor(count / 1000000)}m`;
+    count = `${Math.floor(count *10 / 1000000)/ 10}m`;
   }
-  if (count > 1000) {
+  else if (count > 1000) {
     count = `${Math.trunc((count * 10) / 1000) / 10}k`;
   }
-  ctx.lineWidth = 3;
-  ctx.strokeText(count, xOffset + 30, yOffset+30);
-  ctx.fillText(count, xOffset+ 30, yOffset+30)
+  ctx.lineWidth = 2;
+  ctx.strokeText(count, xOffset+30, yOffset+30);
+  ctx.fillText(count, xOffset+30, yOffset+30)
 }
 
 async function getMultiple(objectsToGet) {
@@ -131,4 +197,24 @@ async function getMultiple(objectsToGet) {
     })
   ));
   return items;
+}
+
+function minsToString(mins){
+  const runtimeHours = Math.floor(mins / 60);
+  const runtimeMins = (mins % 60);
+  let runtime = '';
+  if(runtimeHours > 0){
+    if(runtimeHours == 1 ){
+      runtime += `${runtimeHours}hr `;
+    } else {
+      runtime += `${runtimeHours}hrs `;
+    }
+  }
+  if(runtimeMins >0){
+    if(runtimeMins == 1 ){
+      runtime += `${runtimeMins}min`;
+    }
+    runtime += `${runtimeMins}mins`;
+  }
+  return runtime;
 }

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proggie Tester</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<style>
+  .prog-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+  }
+  img {
+    margin: 5px;
+  }
+</style>
+<body>
+    <div class="prog-wrapper">
+
+    </div>
+</body>
+<script>
+    // const axios = require('axios');
+
+    document.addEventListener("DOMContentLoaded", function() {
+    const wrapper = document.querySelector('.prog-wrapper');
+    console.log(wrapper);
+    const headers = {
+      'Content-Type': 'application/json'
+    }
+    const test1 = {"script_name":"chode droods","loot":[{"id":203,"name":"Grimy tarromin","count":36},{"id":203,"name":"Grimy tarromin","count":36},{"id":203,"name":"Grimy tarromin","count":36},{"id":199,"name":"Grimy guam leaf","count":84},{"id":213,"name":"Grimy kwuarm","count":5},{"id":561,"name":"Nature rune","count":4},{"id":211,"name":"Grimy avantoe","count":20},{"id":217,"name":"Grimy dwarf weed","count":2},{"id":201,"name":"Grimy marrentill","count":44},{"id":563,"name":"Law rune","count":32},{"id":995,"name":"Coins","count":3420420},{"id":985,"name":"Tooth half of key","count":2},{"id":207,"name":"Grimy ranarr weed","count":20},{"id":215,"name":"Grimy cadantine","count":9},{"id":9142,"name":"Mithril bolts","count":116},{"id":13471,"name":"Ensouled chaos druid head","count":8},{"id":205,"name":"Grimy harralander","count":24},{"id":209,"name":"Grimy irit leaf","count":20},{"id":2485,"name":"Grimy lantadyme","count":6},{"id":231,"name":"Snape grass","count":8},{"id":1621,"name":"Uncut emerald","count":2}],"runtime":101,"xp_earned":[{"skill":"strength","xp":"42,069"},{"skill":"hitpoints","xp":"11,022"}]};
+    const test2 = {"script_name":"seers agility","runtime":60,"xp_earned":[{"skill":"agility","xp":"126,585"}],"loot":[{"id":11849,"name":"Mark of grace","count":43}]};
+    const test3 = {"script_name":"too many skills","runtime":33,"xp_earned":[{"skill":"smithing","xp":"11,432"},{"skill":"herblore","xp":"1,500"},{"skill":"agility","xp":"126,585"},{"skill":"strength","xp":"42,069"},{"skill":"hitpoints","xp":"11,022"}],"loot":[{"id":11849,"name":"Mark of grace","count":43}]};
+    const test4 = {"script_name":"no loot","runtime":222,"xp_earned":[{"skill":"mining","xp":"1,111,432"},{"skill":"smithing","xp":"11,432"},{"skill":"herblore","xp":"1,500"},{"skill":"agility","xp":"126,585"},{"skill":"strength","xp":"42,069"},{"skill":"hitpoints","xp":"11,022"}]};
+    const test5 = {"script_name":"no xp","runtime":222,"loot":[{"id":203,"name":"Grimy tarromin","count":36},{"id":199,"name":"Grimy guam leaf","count":84}]};
+
+
+    // Promise.all([axios.post('/getImage', test1, headers), axios.post('/getImage',test2, headers)])
+    //     .then(function (response) {
+    //         console.log(response);
+    //         response.data.forEach((image) => {
+    //           console.log(image.request.response);
+    //             
+    //         });
+    //     })
+    // });
+    async function getImageAsync(testObj){
+      let json = await axios.post('/getImage', testObj, headers);
+      console.log('after the call to service');
+      return json.data.body;
+    }
+
+    (async()=>{
+      let t1 = await getImageAsync(test1);
+      let t2 = await getImageAsync(test2);
+      let t3 = await getImageAsync(test3);
+      let t4 = await getImageAsync(test4);
+      let t5 = await getImageAsync(test5);
+      const imgArray =[t1, t2, t3, t4, t5];
+      imgArray.forEach((image) => {
+        var imgObj = new Image();
+        imgObj.src = JSON.parse(image);
+        wrapper.appendChild(imgObj);
+      });
+    })();
+});
+
+</script>
+</html>
