@@ -24,7 +24,6 @@
     </div>
 </body>
 <script>
-    // const axios = require('axios');
 
     document.addEventListener("DOMContentLoaded", function() {
     const wrapper = document.querySelector('.prog-wrapper');
@@ -39,18 +38,8 @@
     const test5 = {"script_name":"no xp","runtime":222,"loot":[{"id":203,"name":"Grimy tarromin","count":36},{"id":199,"name":"Grimy guam leaf","count":84}]};
     const test6 = {"script_name":"lol xd 420 funny", "runtime": 420, "loot":[{"id": 6055, "count": 420},{"id": 18777, "count": 1}],"xp_earned":[{"skill": "herblore", "xp":"420"}]};
     
-    // Promise.all([axios.post('/getImage', test1, headers), axios.post('/getImage',test2, headers)])
-    //     .then(function (response) {
-    //         console.log(response);
-    //         response.data.forEach((image) => {
-    //           console.log(image.request.response);
-    //             
-    //         });
-    //     })
-    // });
     async function getImageAsync(testObj){
       let json = await axios.post('/getImage', testObj, headers);
-      console.log('after the call to service');
       return json.data.body;
     }
 

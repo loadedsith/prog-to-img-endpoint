@@ -167,7 +167,7 @@ function paintSkills(ctx, image, index, offset, xp){
   const xpInt = parseInt(xp.replace(/,/g, ''));
   let xpGained = '';
   if (xpInt >= 1000000) {
-    xpGained = `${Math.floor(xpInt / 1000000)}m xp`;
+    xpGained = `${Math.floor(xpInt*10 / 1000000)/10}m xp`;
   }
   else if (xpInt > 1000) {
     xpGained = `${Math.trunc((xpInt * 10) / 1000 / 10)}k xp`;
