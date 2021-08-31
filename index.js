@@ -26,6 +26,7 @@ app.get('/', (req, res) => {
 
 async function buildImage(data){
 
+  //calculate size and rows and stuff
   const titleHeight = 80;
 
   let lootHeight = 0;
@@ -40,9 +41,6 @@ async function buildImage(data){
   let xpHeight = 0;
   if(data?.xp_earned?.length>0){
     let numSkillRows = Math.floor(data.xp_earned.length/6) + 1;
-    // if(data.xp_earned.length % 5 == 1){
-    //   numSkillRows++
-    // }
     xpHeight = 40 + (numSkillRows * 50);
   }
 
@@ -51,7 +49,7 @@ async function buildImage(data){
   let canvas = createCanvas(canvasWidth, canvasHeight);
   ctx = canvas.getContext("2d");
   registerFont(__dirname.concat('/font/runescape.ttf'), { family: 'Runescape' });
-  ctx.lineWidth = 3;
+  ctx.lineWidth = 2;
   const r_a = 0.8;
   //ctx.fillStyle = "#36393f";
   ctx.fillStyle = `rgba(54, 57, 63, ${r_a})`;
@@ -74,17 +72,18 @@ async function buildImage(data){
   ctx.fillText(`${curDate} - ${runtime}`, 15, 60);
 
 
-  //draw outline and divider
-  ctx.lineWidth = 10;
-  ctx.beginPath();
-  ctx.moveTo(0,0);
-  ctx.lineTo(canvasWidth, 0);
-  ctx.lineTo(canvasWidth, canvasHeight);
-  ctx.lineTo(0, canvasHeight);
-  ctx.lineTo(0, 0);
-  ctx.stroke();
+  //draw outline
+  // ctx.lineWidth = 10;
+  // ctx.beginPath();
+  // ctx.moveTo(0,0);
+  // ctx.lineTo(canvasWidth, 0);
+  // ctx.lineTo(canvasWidth, canvasHeight);
+  // ctx.lineTo(0, canvasHeight);
+  // ctx.lineTo(0, 0);
+  // ctx.stroke();
 
-  ctx.lineWidth = 2;
+  //draw dividers
+  ctx.lineWidth = .5;
   ctx.beginPath();
   ctx.moveTo(0,titleHeight);
   ctx.lineTo(canvasWidth, titleHeight);
@@ -96,9 +95,10 @@ async function buildImage(data){
     ctx.stroke();
   }
 
-  ctx.lineWidth = 3;
+
   //the loot
   if(data?.loot?.length){
+    ctx.lineWidth = 2;
     ctx.textAlign = "left";
     ctx.font = "20px Runescape";
     ctx.strokeText("Loot:", 15, 110);
@@ -109,6 +109,7 @@ async function buildImage(data){
 
   //the xp
   if(data?.xp_earned){
+    ctx.lineWidth = 2;
     ctx.font = "20px Runescape";
     ctx.textAlign = "left";
     ctx.strokeText("XP:", 15, 30+ titleHeight+lootHeight);
@@ -117,7 +118,7 @@ async function buildImage(data){
     let skillsLoaded = await loadSkills(skillsOpened, ctx, titleHeight + lootHeight);
   }
 
-
+  //the prog report
   const response = {
     statusCode: 200,
     body: JSON.stringify(canvas.toDataURL())
@@ -176,6 +177,11 @@ function paintSkills(ctx, image, index, offset, xp){
   }
   ctx.strokeText(xpGained, xOffset+15, yOffset+35);
   ctx.fillText(xpGained, xOffset+15, yOffset+35);
+  // const start = Math.floor(Math.random() * 99);
+  // const finish = Math.floor(Math.random() * (99 - start) + start); 
+  // ctx.font = "14px Runescape";
+  // ctx.strokeText(`${start}-${finish}`, xOffset+15, yOffset+50);
+  // ctx.fillText(`${start}-${finish}`, xOffset+15, yOffset+50);
 }
 
 
@@ -184,10 +190,13 @@ function paintIcons(ctx, image, index, count){
   const row = Math.floor(index/7);
   const yOffset = 115 + row*35;
   ctx.drawImage(image, xOffset, yOffset);
-  ctx.font = "12px Runescape";
+  ctx.font = "14px Runescape";
   ctx.textAlign = "right";
   if (count >= 1000000) {
     count = `${Math.floor(count *10 / 1000000)/ 10}m`;
+  }
+  else if (count > 100000) {
+    count = `${Math.trunc(count/ 1000)}k`;
   }
   else if (count > 1000) {
     count = `${Math.trunc((count * 10) / 1000) / 10}k`;
@@ -199,6 +208,20 @@ function paintIcons(ctx, image, index, count){
 
 async function getMultiple(objectsToGet) {
   let items = [];
+  objectsToGet.loot.forEach((item) => {
+    const coins = [617,995,996,997,998,999,1000,1001,1002,1003,1004,6964,8890,8891,8892,8893,8894,8895,8896,8897,8898,8899,14440,18028];
+    if(coins.indexOf(item.id) != -1){
+      if (item.count > 50000){
+        item.id = 1004;
+      } else if (item.count > 10000){
+        item.id = 1003;
+      } else if (item.count > 1000 ){
+        item.id = 1001;
+      } else {
+        item.id = 998;
+      }
+    }
+  });
   await Promise.all(objectsToGet.loot.map(obj =>
     axios.get(`https://api.osrsbox.com/items/${obj.id}`).then(response => {
       items.push({'img': response.data.icon, 'count': obj.count});
