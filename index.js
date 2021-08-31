@@ -50,11 +50,12 @@ async function buildImage(data){
   ctx = canvas.getContext("2d");
   registerFont(__dirname.concat('/font/runescape.ttf'), { family: 'Runescape' });
   ctx.lineWidth = 2;
-  const r_a = 0.8;
-  //ctx.fillStyle = "#36393f";
-  ctx.fillStyle = `rgba(54, 57, 63, ${r_a})`;
-  //ctx.fillStyle = "transparent";
-  ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+  ctx.shadowOffsetX = 2;
+  ctx.shadowOffsetY = 2;
+  ctx.shadowBlur = 2;
+  ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
+  
   ctx.textAlign = "left";
   ctx.fillStyle = "#ffff00";
 
@@ -244,8 +245,9 @@ function minsToString(mins){
   if(runtimeMins >0){
     if(runtimeMins == 1 ){
       runtime += `${runtimeMins}min`;
+    } else {
+      runtime += `${runtimeMins}mins`;
     }
-    runtime += `${runtimeMins}mins`;
   }
   return runtime;
 }
